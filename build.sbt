@@ -8,6 +8,10 @@ val sharedSettings = Seq(
   )
 )
 
-lazy val day1 = project
-  .in(file("day1"))
+lazy val day01 = project
+  .in(file("day01"))
+  .settings(sharedSettings)
+
+lazy val day02 = project
+  .in(file("day02"))
   .settings(sharedSettings)

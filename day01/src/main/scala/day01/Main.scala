@@ -1,10 +1,10 @@
-package day1
+package day01
 
 import scala.io.Source
 
-val testFile = "day1/smallTest.txt"
-val testFile2 = "day1/smallTest2.txt"
-val puzzleFile = "day1/input.txt"
+val testFile = "day01/smallTest.txt"
+val testFile2 = "day01/smallTest2.txt"
+val puzzleFile = "day01/input.txt"
 def loadPuzzleInput(fromFile: String): List[String] =
   Source.fromResource(fromFile).getLines().toList
 
