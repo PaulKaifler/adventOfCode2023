@@ -1,5 +1,6 @@
 package day04
 
+import scala.collection.mutable
 import scala.io.Source
 
 def loadPuzzleInput(fromFile: String): List[String] =
@@ -9,11 +10,16 @@ case class Card(cardNumber: Int, winningNumbers: List[Int], numbersIHave: List[I
   override def toString: String = s"Card no. $cardNumber, $winningNumbers, drawn numbers: $numbersIHave"
 
   def calcPoints(): Int = {
+    val hits = getHits()
+    hitsToPoints(hits)
+  }
+
+  def getHits(): Int = {
     var hits = 0
     numbersIHave.foreach { number =>
       if winningNumbers.contains(number) then hits += 1
     }
-    hitsToPoints(hits)
+    hits
   }
 
   private def hitsToPoints(hits: Int): Int = if (hits < 2) hits else Math.pow(2, hits - 1).toInt
@@ -30,6 +36,25 @@ object Card {
   }
 }
 
+def winCards(cards: List[Card]): mutable.HashMap[Int, Int] = {
+  val amountMap = new mutable.HashMap[Int, Int]()
+  cards.foreach { card =>
+    val hits = card.getHits()
+    val cardNumber = card.cardNumber
+    if (!amountMap.contains(cardNumber)) amountMap.update(cardNumber, 1)
+    val numberOfCopies = amountMap.getOrElse(cardNumber, 1)
+
+    (0 until hits).foreach { index =>
+      val cardIncreasing = cardNumber + index + 1
+      if (!amountMap.contains(cardIncreasing)) {
+        amountMap.update(cardIncreasing, 1)
+      }
+      amountMap(cardIncreasing) += numberOfCopies
+    }
+  }
+  amountMap
+}
+
 @main
 def main(): Unit = {
   val gameFile = "day04/input.txt"
@@ -37,5 +62,11 @@ def main(): Unit = {
 
   val cards = puzzleText.map(Card(_))
   val pointsPerCard = cards.map(_.calcPoints())
+  println("Solution part 1")
   println(pointsPerCard.sum)
+
+  println("---")
+  val map = winCards(cards)
+  println("Solution part 2")
+  println(map.values.sum)
 }
