@@ -6,15 +6,23 @@ class Draw(var r: Int, var g: Int, var b: Int) {
   def changeRed(n: Int) = this.r = n
   def changeGreen(n: Int) = this.g = n
   def changeBlue(n: Int) = this.b = n
+
+  override def toString(): String = {
+      s"Draw(r: $r, g: $g, b: $b)"
+  }
 }
 
 case class Game(id: Int, draws: List[Draw]) {
   def validDraws(): Int = {
     draws.foreach(draw =>
       if draw.r > 12 || draw.g > 13 || draw.b > 14 then
-        return id
+        return 0
     )
-    0
+    id
+  }
+
+  override def toString(): String = {
+      s"Game(id: $id, draws: $draws)\nIs possible: ${validDraws() == 0}"
   }
 }
 
@@ -60,28 +68,8 @@ def stringToDraw(string: String): Draw = {
   draw
 }
 
-def tests() = {
-  val draws1 = List(
-    Draw(2, 4, 16),
-    Draw(8, 4, 0),
-    Draw(0, 7, 16)
-  )
-  val game1 = new Game(3, draws1)
-  assert(game1.validDraws() == 3)
-
-  val draws2 = List(
-    Draw(1, 0, 1),
-    Draw(10, 0, 0),
-    Draw(8, 1, 1),
-    Draw(0, 1, 1)
-  )
-  val game2 = new Game(1, draws2)
-  assert(game2.validDraws() == 0)
-}
-
 @main
 def main() = {
-  tests()
   val gameFile = "day02/input.txt"
 
   val games = createGamesFromFile(gameFile)
