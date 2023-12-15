@@ -3,26 +3,44 @@ package day02
 import scala.io.Source
 
 class Draw(var r: Int, var g: Int, var b: Int) {
-  def changeRed(n: Int) = this.r = n
-  def changeGreen(n: Int) = this.g = n
-  def changeBlue(n: Int) = this.b = n
+  def changeRed(n: Int): Unit = this.r = n
+  def changeGreen(n: Int): Unit = this.g = n
+  def changeBlue(n: Int): Unit = this.b = n
 
-  override def toString(): String = {
-      s"Draw(r: $r, g: $g, b: $b)"
+  override def toString: String = {
+    s"Draw(r: $r, g: $g, b: $b)"
   }
+}
+
+case class SetOfCubes(red: Int, green: Int, blue: Int) {
+  def power(): Int = {
+    red * green * blue
+  }
+
+  override def toString: String = s"$red, $green, $blue"
 }
 
 case class Game(id: Int, draws: List[Draw]) {
   def validDraws(): Int = {
-    draws.foreach(draw =>
-      if draw.r > 12 || draw.g > 13 || draw.b > 14 then
-        return 0
-    )
+    draws.foreach(draw => if draw.r > 12 || draw.g > 13 || draw.b > 14 then return 0)
     id
   }
 
-  override def toString(): String = {
-      s"Game(id: $id, draws: $draws)\nIs possible: ${validDraws() == 0}"
+  def getMaxColorOfDraws(): SetOfCubes = {
+    var maxRed = Int.MinValue
+    var maxGreen = Int.MinValue
+    var maxBlue = Int.MinValue
+
+    draws.foreach { draw =>
+      if (draw.r > maxRed) maxRed = draw.r
+      if (draw.g > maxGreen) maxGreen = draw.g
+      if (draw.b > maxBlue) maxBlue = draw.b
+    }
+    SetOfCubes(maxRed, maxGreen, maxBlue)
+  }
+
+  override def toString: String = {
+    s"Game(id: $id, draws: $draws)\nIs possible: ${validDraws() == 0}"
   }
 }
 
@@ -56,23 +74,27 @@ def extractDraws(string: String): List[Draw] = {
 def stringToDraw(string: String): Draw = {
   val singleDraws = string.split(",")
   val draw = new Draw(0, 0, 0)
-  singleDraws.foreach( d =>
+  singleDraws.foreach(d =>
     val n = d.split(" ")(1).toInt
-    if d contains "red" then
-      draw.changeRed(n)
-    else if d contains "green" then
-      draw.changeGreen(n)
-    else
-      draw.changeBlue(n)
+    if d contains "red" then draw.changeRed(n)
+    else if d contains "green" then draw.changeGreen(n)
+    else draw.changeBlue(n)
   )
   draw
 }
 
 @main
-def main() = {
+def main(): Unit = {
   val gameFile = "day02/input.txt"
 
   val games = createGamesFromFile(gameFile)
   val sum = games.foldLeft(0)((acc, g) => acc + g.validDraws())
+  println("Part one")
   println(sum)
+
+  println("\nPart two")
+  val setOfCubes = games.map(game => game.getMaxColorOfDraws())
+  val powers = setOfCubes.map(set => set.power())
+  val sumOfPowers = powers.sum
+  println(sumOfPowers)
 }
