@@ -12,7 +12,24 @@ def isSymbol(character: Char): Boolean = {
     case _                    => true
 }
 
-case class SymbolPosition(x: Int, y: Int)
+def isGearSymbol(character: Char): Boolean = {
+  character == '*'
+}
+
+case class SymbolPosition(x: Int, y: Int) {
+  // only return the two adjacent symbols if there is exactly two
+  def findAdjacentGears(gears: List[GearPosition]): Option[(GearPosition, GearPosition)] = {
+    val adjacentGears = gears.filter(gear =>
+      (gear.start to gear.end).exists { xPos =>
+        Math.abs(gear.line - this.y) <= 1 && Math.abs(xPos - this.x) <= 1
+      }
+    )
+    adjacentGears match {
+      case gear1 :: gear2 :: Nil => Some((gear1, gear2))
+      case _                     => None
+    }
+  }
+}
 
 /**
  * A Number in 2D space
@@ -23,21 +40,11 @@ case class SymbolPosition(x: Int, y: Int)
  */
 case class NumberPosition(start: Int, end: Int, line: Int) {
   def isAdjacentToSymbol(symbols: List[SymbolPosition]): Boolean = {
-    symbols.foreach { symbol =>
-      for (xPos <- start to end) {
-        if symbol == SymbolPosition(xPos - 1, line - 1) then return true
-        if symbol == SymbolPosition(xPos, line - 1) then return true
-        if symbol == SymbolPosition(xPos + 1, line - 1) then return true
-
-        if symbol == SymbolPosition(xPos - 1, line) then return true
-        if symbol == SymbolPosition(xPos + 1, line) then return true
-
-        if symbol == SymbolPosition(xPos - 1, line + 1) then return true
-        if symbol == SymbolPosition(xPos, line + 1) then return true
-        if symbol == SymbolPosition(xPos + 1, line + 1) then return true
+    symbols.exists { symbol =>
+      (start to end).exists { xPos =>
+        Math.abs(symbol.y - this.line) <= 1 && Math.abs(symbol.x - xPos) <= 1
       }
     }
-    false
   }
 
   def toInt(inString: List[String]): Int = {
@@ -45,14 +52,23 @@ case class NumberPosition(start: Int, end: Int, line: Int) {
   }
 }
 
-def findAllSymbols(inputText: List[String]): List[SymbolPosition] = {
+type GearPosition = NumberPosition
+
+def findAllSymbols(inputText: List[String], cond: Char => Boolean): List[SymbolPosition] = {
   var symbols = List[SymbolPosition]()
   for
     y <- inputText.indices
     x <- 0 until inputText.head.length
-    if isSymbol(inputText(y)(x))
+    if cond(inputText(y)(x))
   do symbols = symbols :+ SymbolPosition(x, y)
   symbols
+}
+
+def calcGearRatio(gears: (GearPosition, GearPosition), puzzleText: List[String]): Int = {
+  val (gear1, gear2) = gears
+  val gear1Ratio = gear1.toInt(puzzleText)
+  val gear2Ratio = gear2.toInt(puzzleText)
+  gear1Ratio * gear2Ratio
 }
 
 def findAllNumbers(inputText: List[String]): List[NumberPosition] = {
@@ -97,13 +113,21 @@ def findAllNumbers(inputText: List[String]): List[NumberPosition] = {
 def findValidNumbers(numbers: List[NumberPosition], symbols: List[SymbolPosition]): List[NumberPosition] =
   numbers.filter(number => number.isAdjacentToSymbol(symbols))
 
+def findGearRatios(gears: List[GearPosition], symbols: List[SymbolPosition], puzzleText: List[String]): List[Int] =
+  val foundGears = symbols.map(symbol => symbol.findAdjacentGears(gears)).filter(_.nonEmpty).map(_.get)
+  foundGears.map(calcGearRatio(_, puzzleText))
 @main
 def main(): Unit = {
   val gameFile = "day03/input.txt"
   val puzzleText = loadPuzzleInput(gameFile)
-  val symbols = findAllSymbols(puzzleText)
+  val symbols = findAllSymbols(puzzleText, isSymbol)
   val numbers = findAllNumbers(puzzleText)
   val validNumbers = findValidNumbers(numbers, symbols).map(_.toInt(puzzleText))
   println("Solution part 1")
   println(validNumbers.sum)
+
+  val gearSymbols = findAllSymbols(puzzleText, isGearSymbol)
+  val gears = findGearRatios(numbers, gearSymbols, puzzleText)
+  println("\nSolution part 2")
+  println(gears.sum)
 }
