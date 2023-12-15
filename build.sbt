@@ -19,3 +19,7 @@ lazy val day02 = project
 lazy val day03 = project
   .in(file("day03"))
   .settings(sharedSettings)
+
+lazy val day04 = project
+  .in(file("day04"))
+  .settings(sharedSettings)
