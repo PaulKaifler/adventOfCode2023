@@ -21,7 +21,29 @@ case class SymbolPosition(x: Int, y: Int)
  * @param end End Index of the Number
  * @param line The line in which it is
  */
-case class NumberPosition(start: Int, end: Int, line: Int)
+case class NumberPosition(start: Int, end: Int, line: Int) {
+  def isAdjacentToSymbol(symbols: List[SymbolPosition]): Boolean = {
+    symbols.foreach { symbol =>
+      for (xPos <- start to end) {
+        if symbol == SymbolPosition(xPos - 1, line - 1) then return true
+        if symbol == SymbolPosition(xPos, line - 1) then return true
+        if symbol == SymbolPosition(xPos + 1, line - 1) then return true
+
+        if symbol == SymbolPosition(xPos - 1, line) then return true
+        if symbol == SymbolPosition(xPos + 1, line) then return true
+
+        if symbol == SymbolPosition(xPos - 1, line + 1) then return true
+        if symbol == SymbolPosition(xPos, line + 1) then return true
+        if symbol == SymbolPosition(xPos + 1, line + 1) then return true
+      }
+    }
+    false
+  }
+
+  def toInt(inString: List[String]): Int = {
+    inString(line).substring(start, end + 1).toInt
+  }
+}
 
 def findAllSymbols(inputText: List[String]): List[SymbolPosition] = {
   var symbols = List[SymbolPosition]()
@@ -67,11 +89,21 @@ def findAllNumbers(inputText: List[String]): List[NumberPosition] = {
   rawNumbers
 }
 
+/**
+ * @param numbers Numbers to check
+ * @param symbols Symbol positions
+ * @return Return all numbers adjacent to symbols
+ */
+def findValidNumbers(numbers: List[NumberPosition], symbols: List[SymbolPosition]): List[NumberPosition] =
+  numbers.filter(number => number.isAdjacentToSymbol(symbols))
+
 @main
 def main(): Unit = {
   val gameFile = "day03/input.txt"
   val puzzleText = loadPuzzleInput(gameFile)
   val symbols = findAllSymbols(puzzleText)
   val numbers = findAllNumbers(puzzleText)
-  println(numbers)
+  val validNumbers = findValidNumbers(numbers, symbols).map(_.toInt(puzzleText))
+  println("Solution part 1")
+  println(validNumbers.sum)
 }
