@@ -6,32 +6,32 @@ import scala.io.Source
 def loadPuzzleInput(fromFile: String): List[String] =
   Source.fromResource(fromFile).getLines().toList
 
-case class Mapping(from: Int, to: Int, length: Int) {
-  def covers(n: Int): Boolean = n >= from && n < from + length
+case class Mapping(from: BigInt, to: BigInt, length: BigInt) {
+  def covers(n: BigInt): Boolean = n >= from && n < from + length
 
-  def translate(n: Int): Int = to + ( n - from)
+  def translate(n: BigInt): BigInt = to + (n - from)
 
 }
 
 case class MapGroup(startName: String, endName: String, mappings: List[Mapping]) {
   override def toString: String = s"\nfrom: $startName, to: $endName - mappings $mappings"
 
-  def translate(startNumber: Int): Int = {
+  def translate(startNumber: BigInt): BigInt = {
     println(s"${startName.toUpperCase()} -> ${endName.toUpperCase()}")
-    mappings.foreach {map =>
-        if map.covers(startNumber) then {
-          println(s"   Translation found:     $startNumber -> ${map.translate(startNumber)}")
-          return map.translate(startNumber)
-        }
+    mappings.foreach { map =>
+      if map.covers(startNumber) then {
+        println(s"   Translation found:     $startNumber -> ${map.translate(startNumber)}")
+        return map.translate(startNumber)
+      }
     }
     println(s"   No translation cover:  $startNumber -> $startNumber")
     startNumber
   }
 }
-case class Almanac(seeds: List[Int], mappings: List[MapGroup]) {
-  def translate(from: String, to: String, startNumber: Int): Int = {
+case class Almanac(seeds: List[BigInt], mappings: List[MapGroup]) {
+  def translate(from: String, to: String, startNumber: BigInt): BigInt = {
 
-    var translation: Int = startNumber
+    var translation: BigInt = startNumber
     var currentName = from
     while (!currentName.equalsIgnoreCase(to)) {
 
@@ -47,11 +47,10 @@ case class Almanac(seeds: List[Int], mappings: List[MapGroup]) {
     translation
   }
 
-  def findLowestLocation(from: String): Int = {
+  def findLowestLocation(from: String): BigInt = {
     val translations = seeds.map(translate(from, "location", _))
     translations.min
   }
-
 
   override def toString: String =
     s"""seeds:    $seeds
@@ -66,7 +65,7 @@ object Almanac {
     val (seedsString :: mapGroupsString) = almanacString.map(_.trim)
 
     // Parse seeds
-    val seeds = seedsString.split("\\s+").toList.tail.map(_.toInt)
+    val seeds = seedsString.split("\\s+").toList.tail.map(BigInt(_))
 
     val regexMapName = """^(.+?)-to-(.+?)\s+map:""".r
     val regexThreeNumbers = """(\d+)\s+(\d+)\s+(\d+)""".r
@@ -86,7 +85,8 @@ object Almanac {
       var i = 0
       while (mapData.indices.contains(i) && !mapData(i).isBlank) {
         mapData(i) match
-          case regexThreeNumbers(to, from, interval) => maps = maps :+ Mapping(from.toInt, to.toInt, interval.toInt)
+          case regexThreeNumbers(to, from, interval) =>
+            maps = maps :+ Mapping(BigInt(from), BigInt(to), BigInt(interval))
           case _ => throw Exception(s"Trouble parsing the three numbers ${mapData(i)}")
 
         i += 1
@@ -106,7 +106,5 @@ def main(): Unit = {
   val puzzleText = loadPuzzleInput(gameFile)
 
   val almanac = Almanac(puzzleText)
-//  almanac.mappings.head.translate(13)
-//  println(almanac.translate(from = "seed", to = "location", 13))
   println(almanac.findLowestLocation("seed"))
 }
